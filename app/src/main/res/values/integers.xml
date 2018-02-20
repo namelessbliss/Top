@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="nombre.maxLenght">30</integer>
+    <integer name="estatura.maxLenght">3</integer>
+    <integer name="lugarNacimiento.maxLength">50</integer>
+    <integer name="notas.maxLength">1000</integer>
+    <integer name="estatura_min">50</integer>
+</resources>
