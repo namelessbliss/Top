@@ -1,16 +1,26 @@
 package adolfopardo.top;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.raizlabs.android.dbflow.sql.language.SQLite;
+
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -27,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
     private ArtistaAdapter adapter;
 
-    public static final Artista sArtista = new Artista();
+    //public static final Artista sArtista = new Artista();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         configToolBar();
         configAdapter();
         configRecyclerView();
-        generateArtist();
+        //generateArtist();
     }
 
     private void generateArtist() {
@@ -63,10 +73,17 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
                 "http://static.zerochan.net/Geboku.Ichi-gou.full.1714362.jpg"};
 
         for (int i = 0; i < 3; i++) {
-            Artista artista = new Artista(i + 1, nombres[i], apellidos[i], generos[i],
+            Artista artista = new Artista( nombres[i], apellidos[i], generos[i],
                     nacimientos[i], lugares[i], estaturas[i], notas[i], i + 1, fotos[i]);
 
-            adapter.add(artista);
+            //adapter.add(artista);
+            try {
+                artista.save();
+                Log.i("DBFlow", "Insercion correcta de datos");
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i("DBFlow", "Error al insertar datos");
+            }
 
         }
     }
@@ -89,6 +106,18 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         recyclerview.setAdapter(adapter);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        adapter.setList(getArtistaFromDB());
+    }
+
+    private List<Artista> getArtistaFromDB() {
+        return SQLite.select()
+                .from(Artista.class)
+                .orderBy(Artista_Table.orden,true)
+                .queryList();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -118,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
      * ****/
     @Override
     public void onItemClick(Artista artista) {
-        sArtista.setId(artista.getId());
+        /*sArtista.setId(artista.getId());
         sArtista.setNombre(artista.getNombre());
         sArtista.setApellido(artista.getApellido());
         sArtista.setGenero(artista.getGenero());
@@ -127,18 +156,45 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         sArtista.setLugarNacimiento(artista.getLugarNacimiento());
         sArtista.setOrden(artista.getOrden());
         sArtista.setNotas(artista.getNotas());
-        sArtista.setFotoUrl(artista.getFotoUrl());
+        sArtista.setFotoUrl(artista.getFotoUrl());*/
+
 
         Intent intent = new Intent(MainActivity.this,DetalleActivity.class);
+        intent.putExtra(artista.ID,artista.getId());
         startActivity(intent);
 
     }
 
     @Override
-    public void onLongItemClick(Artista artista) {
+    public void onLongItemClick(final Artista artista) {
+        //AÑADIR VIBRACION
+        Vibrator vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+        if(vibrator != null){
+            vibrator.vibrate(60);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle(R.string.main_dialogDelete_title)
+                .setMessage(String.format(Locale.ROOT, getString(R.string.main_dialogDelete_message),
+                        artista.getNombreCompleto()))
+                .setPositiveButton(R.string.detalle_dialogDelete_delete, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        try {
+                            artista.delete();
+                            adapter.remove(artista);
+                            showMessage(R.string.main_message_delete_success);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showMessage(R.string.main_message_fail);
+                        }
+
+                    }
+                })
+                .setNegativeButton(R.string.label_dialog_cancel, null);
+                builder.show();
 
     }
-
+/*    @Override
     protected void onActivityResult(int requesCode, int resultCode, Intent data){
         super.onActivityResult(requesCode, resultCode, data);
 
@@ -146,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
             adapter.add(sArtista);
 
         }
-    }
+    }*/
 
     @OnClick(R.id.fab)
     public void addArtist() {
@@ -157,5 +213,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
     }
 
+    private void showMessage(int resource) {
+        Snackbar.make(containerMain, resource, Snackbar.LENGTH_SHORT).show();
+    }
 
 }

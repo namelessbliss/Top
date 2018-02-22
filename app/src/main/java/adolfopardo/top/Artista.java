@@ -1,23 +1,55 @@
 package adolfopardo.top;
 
+import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.PrimaryKey;
+import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.structure.BaseModel;
+
 /**
  * Created by Administrador on 08/02/2018.
  */
 
-public class Artista {
+@Table(database = TopDB.class)
+
+public class Artista extends BaseModel{
     public static final String ORDEN = "orden";
+    public static final String ID = "id";
+
+    @PrimaryKey(autoincrement = true)
     private long id;
+    @Column
     private String nombre;
+    @Column
     private String apellido;
+    @Column
     private String genero;
+    @Column
     private long fechaNacimiento;
+    @Column
     private String lugarNacimiento;
+    @Column
     private short etatura;
+    @Column
     private String notas;
+    @Column
     private int orden;
+    @Column
     private String fotoUrl;
 
     public Artista() {
+    }
+
+    public Artista(String nombre, String apellido, String genero, long fechaNacimiento,
+                   String lugarNacimiento, short etatura, String notas, int orden, String fotoUrl) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.genero = genero;
+        this.fechaNacimiento = fechaNacimiento;
+        this.lugarNacimiento = lugarNacimiento;
+        this.etatura = etatura;
+        this.notas = notas;
+        this.orden = orden;
+        this.fotoUrl = fotoUrl;
     }
 
     public Artista(long id, String nombre, String apellido, String genero, long fechaNacimiento,
